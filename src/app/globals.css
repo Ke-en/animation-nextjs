@@ -25,3 +25,26 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+.map-container {
+  width: 70%;
+  max-width: 800px;
+}
+
+.county {
+  transition: fill 0.3s ease;
+}
+
+.county:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.tooltip {
+  position: absolute;
+  background: white;
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
