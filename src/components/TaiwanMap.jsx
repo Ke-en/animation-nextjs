@@ -4,8 +4,12 @@ import * as d3 from "d3";
 import { useRef, useEffect } from "react";
 import * as topojson from "topojson-client";
 import twTopo from "@/data/topo_county.json";
+import { normalizeCountyName } from "@/utils/dataUtils";
 
-const TaiwanMap = () => {
+const TaiwanMap = ({
+  onCountySelect = () => {},
+  selectedCountyName = null,
+}) => {
   const ref = useRef(null);
   const width = 600;
   const height = 800;
@@ -14,6 +18,9 @@ const TaiwanMap = () => {
 
   useEffect(() => {
     if (!ref.current) return;
+
+    // clear previous drawing to support prop-driven re-render
+    d3.select(ref.current).selectAll("*").remove();
 
     const svg = d3
       .select(ref.current)
@@ -31,22 +38,41 @@ const TaiwanMap = () => {
 
     const pathGenerator = d3.geoPath().projection(projection);
 
+    const normalize = normalizeCountyName;
+    const selectedNorm = selectedCountyName
+      ? normalize(selectedCountyName)
+      : null;
+
     // 繪製地圖
     g.selectAll("path")
       .data(topoData.features)
       .enter()
       .append("path")
       .attr("d", pathGenerator)
-      .attr("fill", "#e5e7eb")
+      .attr("fill", (d) => {
+        const county = normalize(
+          d.properties.COUNTYNAME || d.properties.COUNTY || ""
+        );
+        return selectedNorm && county === selectedNorm ? "#7dd3fc" : "#e5e7eb";
+      })
       .attr("stroke", "#000")
       .attr("stroke-width", 1)
-      .on("mouseover", function () {
+      .on("mouseover", function (event, d) {
         d3.select(this).attr("fill", "#bfdbfe");
       })
-      .on("mouseout", function () {
-        d3.select(this).attr("fill", "#e5e7eb");
+      .on("mouseout", function (event, d) {
+        const county = normalize(
+          d.properties.COUNTYNAME || d.properties.COUNTY || ""
+        );
+        d3.select(this).attr(
+          "fill",
+          selectedNorm && county === selectedNorm ? "#7dd3fc" : "#e5e7eb"
+        );
+      })
+      .on("click", function (event, d) {
+        onCountySelect(d.properties);
       });
-  }, [topoData.features]);
+  }, [topoData.features, selectedCountyName, onCountySelect]);
 
   return (
     <div className="map-container relative">
