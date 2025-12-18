@@ -22,6 +22,17 @@ export default function MapContainer() {
     }
   }, []);
 
+  // responsive: detect mobile width
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    function update() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   function onCountySelect(properties: any) {
     if (!properties) return;
     const name = normalizeCountyName(properties.COUNTYNAME || properties.COUNTY || properties.countyName);
@@ -69,7 +80,8 @@ export default function MapContainer() {
 
       <CountyInfoPanel
         visible={panelVisible}
-        countyName={selectedCountyName ? selectedCountyName : null}
+        isMobile={isMobile}
+        featureProperties={selectedCountyName ? { COUNTYNAME: selectedCountyName } : null}
         metrics={metrics}
         districts={districts}
         selectedDistrictName={selectedDistrictName}

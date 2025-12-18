@@ -27,7 +27,8 @@ const LABEL_MAP: TLABEL_MAP = {
 
 type TCountyInfoPanelProps = {
     visible?: boolean;
-    countyName: string | null;
+    isMobile?: boolean;
+    featureProperties?: any | null;
     metrics?: any;
     districts?: Array<TDISTRICT>;
     selectedDistrictName?: string | null;
@@ -36,18 +37,20 @@ type TCountyInfoPanelProps = {
 
 export default function CountyInfoPanel({
   visible = false,
-  countyName = '',
+  isMobile = false,
+  featureProperties = null,
   metrics = null,
   districts = [],
   selectedDistrictName = null,
   onClose = () => {},
 }: TCountyInfoPanelProps) {
-  if (!visible) return null;
+  const countyName = featureProperties?.COUNTYNAME || '';
 
-//   const countyName = featureProperties?.COUNTYNAME || '';
+  // For mobile we keep component mounted to allow slide animation
+  if (!visible && !isMobile) return null;
 
-  return (
-    <aside className="fixed right-6 top-24 w-80 bg-white border border-green-200 rounded p-4 shadow-lg z-40">
+  const panelContent = (
+    <div className="p-4">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="font-semibold text-lg">{countyName}</h3>
@@ -100,6 +103,24 @@ export default function CountyInfoPanel({
           </div>
         </details>
       </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        {/* backdrop */}
+        <div className={`fixed inset-0 bg-black/40 z-40 transition-opacity ${visible ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+        <div className={`fixed left-0 bottom-0 w-full bg-white rounded-t-lg z-50 transform transition-transform duration-300 ease-in-out ${visible ? 'translate-y-0' : 'translate-y-full'}`} style={{ maxHeight: '60vh', overflow: 'auto' }}>
+          {panelContent}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <aside className="fixed right-6 top-24 w-80 bg-white border border-green-200 rounded p-4 shadow-lg z-40">
+      {panelContent}
     </aside>
   );
 }
