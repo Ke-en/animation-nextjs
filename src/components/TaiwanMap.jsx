@@ -142,6 +142,47 @@ const TaiwanMap = ({
       applyTransform(d3.zoomIdentity);
     });
 
+    // add county name labels
+    const labelsG = g.append("g").attr("class", "labels");
+
+    labelsG
+      .selectAll("text")
+      .data(topoData.features)
+      .enter()
+      .append("text")
+      .attr("x", (d) => {
+        const c = pathGenerator.centroid(d);
+        return Number.isFinite(c[0]) ? c[0] : null;
+      })
+      .attr("y", (d) => {
+        const c = pathGenerator.centroid(d);
+        return Number.isFinite(c[1]) ? c[1] : null;
+      })
+      .text((d) =>
+        normalize(d.properties.COUNTYNAME || d.properties.COUNTY || "")
+      )
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "central")
+      .style("font-size", "10px")
+      .style("font-weight", 700)
+      .style("fill", "#ffffff")
+      .style("stroke", "#000000")
+      .style("stroke-width", "3px")
+      .style("paint-order", "stroke")
+      .style("pointer-events", "auto")
+      .style("cursor", "pointer")
+      .on("click", function (event, d) {
+        // prevent background click
+        event.stopPropagation();
+
+        const applyTransform = (transform) => {
+          svg.transition().duration(750).call(zoom.transform, transform);
+        };
+
+        applyTransform(computeTransformForFeature(d));
+        onCountySelect(d.properties);
+      });
+
     // if parent prop requests a particular county, sync zoom to it
     if (selectedNorm) {
       const target = topoData.features.find((f) => {
